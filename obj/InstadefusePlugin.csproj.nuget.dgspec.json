@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\B3none\\Documents\\GitHub\\cs2-retakes-instadefuse\\InstadefusePlugin\\InstadefusePlugin.csproj": {}
+    "C:\\Users\\B3none\\Documents\\GitHub\\cs2-retakes-instadefuse\\InstadefusePlugin.csproj": {}
   },
   "projects": {
-    "C:\\Users\\B3none\\Documents\\GitHub\\cs2-retakes-instadefuse\\InstadefusePlugin\\InstadefusePlugin.csproj": {
+    "C:\\Users\\B3none\\Documents\\GitHub\\cs2-retakes-instadefuse\\InstadefusePlugin.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\B3none\\Documents\\GitHub\\cs2-retakes-instadefuse\\InstadefusePlugin\\InstadefusePlugin.csproj",
+        "projectUniqueName": "C:\\Users\\B3none\\Documents\\GitHub\\cs2-retakes-instadefuse\\InstadefusePlugin.csproj",
         "projectName": "InstadefusePlugin",
-        "projectPath": "C:\\Users\\B3none\\Documents\\GitHub\\cs2-retakes-instadefuse\\InstadefusePlugin\\InstadefusePlugin.csproj",
+        "projectPath": "C:\\Users\\B3none\\Documents\\GitHub\\cs2-retakes-instadefuse\\InstadefusePlugin.csproj",
         "packagesPath": "C:\\Users\\B3none\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\B3none\\Documents\\GitHub\\cs2-retakes-instadefuse\\InstadefusePlugin\\obj\\",
+        "outputPath": "C:\\Users\\B3none\\Documents\\GitHub\\cs2-retakes-instadefuse\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\B3none\\AppData\\Roaming\\NuGet\\NuGet.Config"
