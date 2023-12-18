@@ -98,20 +98,20 @@ public class InstadefusePlugin : BasePlugin
             return;
         }
 
+        if (IsActiveGrenadeOrMolotov())
+        {
+            Logger.LogInformation("There is an active grenade / molotov somewhere.");
+            return;
+        }
+        
         float c4TimeLeft = _bombDuration - (Server.CurrentTime - _c4PlantTime);
         float defuseTime = defuser.PawnHasDefuser ? 5.0f : 10.0f;
-
+        
         CCSGameRules gameRules = GetGameRules();
         
         if (defuseTime > c4TimeLeft)
         {
             gameRules.TerminateRound(0.0f, RoundEndReason.TargetBombed);
-        }
-        
-        if (_isActiveGrenade || _isActiveMolotov)
-        {
-            Logger.LogInformation("There is an active grenade / molotov somewhere.");
-            return;
         }
         
         gameRules.TerminateRound(0.0f, RoundEndReason.BombDefused);
@@ -120,5 +120,35 @@ public class InstadefusePlugin : BasePlugin
     private static CCSGameRules GetGameRules()
     {
         return Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
+    }
+    
+    private static bool IsActiveGrenadeOrMolotov()
+    {
+        var grenades = Utilities.FindAllEntitiesByDesignerName<CBaseCSGrenadeProjectile>("hegrenade_projectile");
+
+        foreach (var grenade in grenades)
+        {
+            if (IsGrenadeMoving(grenade))
+            {
+                return true;
+            }
+        }
+
+        var molotovs = Utilities.FindAllEntitiesByDesignerName<CMolotovProjectile>("molotov_projectile");
+
+        foreach (var molotov in molotovs)
+        {
+            if (IsGrenadeMoving(molotov) || molotov.IsLive)
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    private static bool IsGrenadeMoving(CBaseCSGrenadeProjectile grenade)
+    {
+        return grenade.Velocity.X + grenade.Velocity.Y + grenade.Velocity.Z > 0.0;
     }
 }
