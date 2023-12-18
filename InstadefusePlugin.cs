@@ -22,8 +22,6 @@ public class InstadefusePlugin : BasePlugin
     
     // Local
     private float _c4PlantTime = 0.0f;
-    private bool _hasBeenDefused = false;
-    private bool _willMakeDefuse = false;
     private bool _isActiveGrenade = false;
     private bool _isActiveMolotov = false;
     
@@ -37,11 +35,7 @@ public class InstadefusePlugin : BasePlugin
     [GameEventHandler]
     public HookResult OnEventRoundStart(EventRoundStart @event, GameEventInfo info)
     {
-        Logger.LogInformation("Round has started with Timelimit: {Timelimit}", @event.Timelimit);
-
         _c4PlantTime = 0.0f;
-        _hasBeenDefused = false;
-        _willMakeDefuse = false;
         
         return HookResult.Continue;
     }
