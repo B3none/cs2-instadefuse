@@ -22,8 +22,6 @@ public class InstadefusePlugin : BasePlugin
     
     // Local
     private float _c4PlantTime = 0.0f;
-    private bool _isActiveGrenade = false;
-    private bool _isActiveMolotov = false;
     
     public override void Load(bool hotReload)
     {
