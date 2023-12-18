@@ -1,4 +1,5 @@
-﻿using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Cvars;
@@ -57,9 +58,9 @@ public class InstadefusePlugin : BasePlugin
             return;
         }
 
-        int defuser = GetDefuser();
+        CCSPlayerController? defuser = GetDefuser();
         
-        if (defuser < 1)
+        if (defuser == null)
         {
             Logger.LogInformation("Defuser not found.");
             return;
@@ -69,10 +70,18 @@ public class InstadefusePlugin : BasePlugin
         var attacker = @event.Attacker;
     }
 
-    private int GetDefuser()
+    private CCSPlayerController? GetDefuser()
     {
+        var players = Utilities.GetPlayers();
+
+        foreach (var player in players)
+        {
+            if (player.PlayerPawn.Value != null && player.PlayerPawn.Value.IsDefusing)
+            {
+                return player;
+            }
+        }
         
-        
-        return 0;
+        return null;
     }
 }
