@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Cvars;
+using CounterStrikeSharp.API.Modules.Entities.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace InstadefusePlugin;
@@ -18,9 +19,12 @@ public class InstadefusePlugin : BasePlugin
     // ConVars
     private float _bombDuration;
     
-    private float c4PlantTime = 0.0f;
-    private bool hasBeenDefused = false;
-    private bool willMakeDefuse = false;
+    // Local
+    private float _c4PlantTime = 0.0f;
+    private bool _hasBeenDefused = false;
+    private bool _willMakeDefuse = false;
+    private bool _isActiveGrenade = false;
+    private bool _isActiveMolotov = false;
     
     public override void Load(bool hotReload)
     {
@@ -33,17 +37,26 @@ public class InstadefusePlugin : BasePlugin
     public HookResult OnEventRoundStart(EventRoundStart @event, GameEventInfo info)
     {
         Logger.LogInformation("Round has started with Timelimit: {Timelimit}", @event.Timelimit);
-        
-        hasBeenDefused = false;
-        willMakeDefuse = false;
+
+        _c4PlantTime = 0.0f;
+        _hasBeenDefused = false;
+        _willMakeDefuse = false;
         
         return HookResult.Continue;
     }
     
     [GameEventHandler]
-    public HookResult OnPlayerDeath(EventPlayerBlind @event, GameEventInfo info)
+    public HookResult OnPlayerDeath(EventPlayerDeath @event, GameEventInfo info)
     {
         AttemptInstadefuse();
+
+        return HookResult.Continue;
+    }
+    
+    [GameEventHandler]
+    public HookResult OnBombPlanted(EventBombPlanted @event, GameEventInfo info)
+    {
+        _c4PlantTime = Server.CurrentTime;
 
         return HookResult.Continue;
     }
@@ -57,6 +70,12 @@ public class InstadefusePlugin : BasePlugin
             Logger.LogInformation("Bomb duration ConVar not set.");
             return;
         }
+        
+        if (_isActiveGrenade || _isActiveMolotov)
+        {
+            Logger.LogInformation("There is an active grenade / molotov somewhere.");
+            return;
+        }
 
         CCSPlayerController? defuser = GetDefuser();
         
@@ -65,9 +84,16 @@ public class InstadefusePlugin : BasePlugin
             Logger.LogInformation("Defuser not found.");
             return;
         }
+
+        float c4TimeLeft = _bombDuration - (Server.CurrentTime - _c4PlantTime);
+        float defuseTime = defuser.PawnHasDefuser ? 5.0f : 10.0f;
+
+        CCSGameRules gameRules = GetGameRules();
         
-        var victim = @event.Userid;
-        var attacker = @event.Attacker;
+        if (c4TimeLeft > defuseTime)
+        {
+            gameRules.TerminateRound(0.0f, RoundEndReason.BombDefused);
+        }
     }
 
     private CCSPlayerController? GetDefuser()
@@ -83,5 +109,10 @@ public class InstadefusePlugin : BasePlugin
         }
         
         return null;
+    }
+    
+    private static CCSGameRules GetGameRules()
+    {
+        return Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
     }
 }
