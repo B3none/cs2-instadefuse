@@ -1,4 +1,4 @@
-# cs2-instadefuse
+# CS2 Instadefuse
 The CS2 port of my CS:GO Instadefuse plugin written in C# for CounterStrikeSharp
 
 ## Setup for development
