@@ -10,13 +10,15 @@ namespace InstadefusePlugin;
 [MinimumApiVersion(129)]
 public class InstadefusePlugin : BasePlugin
 {
+    private const string Version = "1.2.1";
+    
     public override string ModuleName => "Instadefuse Plugin";
-    public override string ModuleVersion => "1.2.0";
+    public override string ModuleVersion => Version;
     public override string ModuleAuthor => "B3none";
     public override string ModuleDescription => "Allows a CT to instantly defuse the bomb when all Ts are dead and nothing can prevent the defusal.";
 
-    private static readonly string MessagePrefix = $"[{ChatColors.DarkBlue}Instadefuse{ChatColors.White}] ";
-    private static string LogPrefix = $"[{ConsoleColor.Green}Instadefuse{ConsoleColor.White}] ";
+    private static readonly string LogPrefix = $"[Instadefuse {Version}] ";
+    private static readonly string MessagePrefix = $"[{ChatColors.Green}Instadefuse{ChatColors.White}] ";
 
     private float _bombPlantedTime = float.NaN;
     private bool _bombTicking = false;
