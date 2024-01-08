@@ -234,16 +234,18 @@ public class InstadefusePlugin : BasePlugin
         var defuseLength = plantedBomb.DefuseLength;
         if (defuseLength != 5 && defuseLength != 10)
         {
-            defuseLength = player.PawnHasDefuser ? 5 : 10;
+            defuseLength = player.PawnHasDefuser ? 5.0f : 10.0f;
         }
         Console.WriteLine($"{LogPrefix}DefuseLength: {defuseLength}");
 
-        var bombCanBeDefusedInTime = bombTimeUntilDetonation - defuseLength >= 0.0f;
+        var timeLeftAfterDefuse = bombTimeUntilDetonation - defuseLength;
+        var bombCanBeDefusedInTime = timeLeftAfterDefuse >= 0.0f;
 
         if (!bombCanBeDefusedInTime)
         {
-            Console.WriteLine($"{LogPrefix}Defuse started with {bombTimeUntilDetonation.ToString("n3")} seconds left on the bomb. Not enough time left!");
-            Server.PrintToChatAll($"{MessagePrefix}Defuse started with {ChatColors.Darkred}{bombTimeUntilDetonation.ToString("n3")} seconds{ChatColors.White} left on the bomb. Not enough time left!");
+            var outputText = $"{MessagePrefix}{player.PlayerName} was {ChatColors.Darkred}{Math.Abs(timeLeftAfterDefuse):n3} seconds{ChatColors.White} away from defusing.";
+            Console.WriteLine($"{LogPrefix}{outputText}");
+            Server.PrintToChatAll($"{MessagePrefix}{outputText}");
 
             Server.NextFrame(() =>
             {
@@ -257,9 +259,9 @@ public class InstadefusePlugin : BasePlugin
         {
             plantedBomb.DefuseCountDown = 0;
 
-            Console.WriteLine($"{LogPrefix}Instant Defuse was successful! [{bombTimeUntilDetonation.ToString("n3")}s left]");
-            Server.PrintToChatAll(
-                $"{MessagePrefix}Instant Defuse was successful! Defuse started with {ChatColors.Green}{bombTimeUntilDetonation.ToString("n3")} seconds{ChatColors.White} left on the bomb.");
+            var outputText = $"{player.PlayerName} defused with {ChatColors.Green}{bombTimeUntilDetonation:n3} seconds{ChatColors.White} left on the bomb.";
+            Console.WriteLine($"{LogPrefix}{outputText}");
+            Server.PrintToChatAll($"{MessagePrefix}{outputText}");
         });
     }
 
