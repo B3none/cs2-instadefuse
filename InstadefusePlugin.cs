@@ -10,62 +10,46 @@ namespace InstadefusePlugin;
 [MinimumApiVersion(129)]
 public class InstadefusePlugin : BasePlugin
 {
-    private const string Version = "1.2.1";
+    private const string Version = "1.3.0";
     
     public override string ModuleName => "Instadefuse Plugin";
     public override string ModuleVersion => Version;
     public override string ModuleAuthor => "B3none";
-    public override string ModuleDescription => "Allows a CT to instantly defuse the bomb when all Ts are dead and nothing can prevent the defusal.";
+    public override string ModuleDescription => "Allows a CT to instantly defuse the bomb when nothing can prevent defusal.";
 
     private static readonly string LogPrefix = $"[Instadefuse {Version}] ";
-    private static readonly string MessagePrefix = $"[{ChatColors.Green}Instadefuse{ChatColors.White}] ";
+    private static readonly string MessagePrefix = $"[{ChatColors.Green}Retakes{ChatColors.White}] ";
 
     private float _bombPlantedTime = float.NaN;
-    private bool _bombTicking = false;
-    private int _molotovThreat = 0;
-    private int _heThreat = 0;
+    private bool _bombTicking;
+    private int _molotovThreat;
+    private int _heThreat;
 
     private List<int> _infernoThreat = new();
 
     public override void Load(bool hotReload)
     {
         Console.WriteLine($"{LogPrefix}Plugin loaded!");
-        
-        // This is commented because it is used for debugging.
-        // RegisterEventHandler<EventBombBeep>(OnBombBeep);
     }
-    
-    // private HookResult OnBombBeep(EventBombBeep @event, GameEventInfo info)
-    // {
-    //     var plantedBomb = FindPlantedBomb();
-    //     if (plantedBomb == null)
-    //     {
-    //         Console.WriteLine("Planted bomb is null!");
-    //         return HookResult.Continue;
-    //     }
-    //
-    //     Server.PrintToChatAll($"{plantedBomb.TimerLength - (Server.CurrentTime - _bombPlantedTime)}");
-    //     return HookResult.Continue;
-    // }
 
     [GameEventHandler]
     public HookResult OnGrenadeThrown(EventGrenadeThrown @event, GameEventInfo info)
     {
-        Console.WriteLine($"{LogPrefix}OnGrenadeThrown: {@event.Weapon} - isBot: {@event.Userid?.IsBot}"); 
+        Console.WriteLine($"{LogPrefix}OnGrenadeThrown: {@event.Weapon} - isBot: {@event.Userid?.IsBot}");
 
-        if (@event.Weapon == "smokegrenade" || @event.Weapon == "flashbang" || @event.Weapon == "decoy")
-        {
-            return HookResult.Continue;
-        }
+        var weapon = @event.Weapon;
 
-        if (@event.Weapon == "hegrenade")
+        if (weapon == "hegrenade")
         {
             _heThreat++;
         }
-
-        if (@event.Weapon == "incgrenade" || @event.Weapon == "molotov")
+        else if (weapon == "incgrenade" || @event.Weapon == "molotov")
         {
             _molotovThreat++;
+        }
+        else
+        {
+            return HookResult.Continue;
         }
 
         PrintThreatLevel();
@@ -194,19 +178,15 @@ public class InstadefusePlugin : BasePlugin
     public HookResult OnBombBeginDefuse(EventBombBegindefuse @event, GameEventInfo info)
     {
         Console.WriteLine($"{LogPrefix}OnBombBeginDefuse");
-
-        if (@event.Userid == null)
-        {
-            return HookResult.Continue;
-        }
-
-        if (!@event.Userid.IsValid)
-        {
-            return HookResult.Continue;
-        }
-
         
-        AttemptInstadefuse(@event.Userid);
+        var player = @event.Userid;
+
+        if (player == null || !player.IsValid)
+        {
+            return HookResult.Continue;
+        }
+        
+        AttemptInstadefuse(player);
 
         return HookResult.Continue;
     }
@@ -225,8 +205,8 @@ public class InstadefusePlugin : BasePlugin
 
         if (_heThreat > 0 || _molotovThreat > 0 || _infernoThreat.Any())
         {
-            Server.PrintToChatAll($"{MessagePrefix}Instant Defuse not possible because a grenade threat is active!");
             Console.WriteLine($"{LogPrefix}Instant Defuse not possible because a grenade threat is active!");
+            Server.PrintToChatAll($"{MessagePrefix}Instant Defuse not possible because a grenade threat is active!");
             return;
         }
 
@@ -262,9 +242,9 @@ public class InstadefusePlugin : BasePlugin
 
         if (!bombCanBeDefusedInTime)
         {
-            Server.PrintToChatAll($"{MessagePrefix}Defuse started with {ChatColors.Darkred}{bombTimeUntilDetonation.ToString("n3")} seconds{ChatColors.White} left on the bomb. Not enough time left!");
             Console.WriteLine($"{LogPrefix}Defuse started with {bombTimeUntilDetonation.ToString("n3")} seconds left on the bomb. Not enough time left!");
-            
+            Server.PrintToChatAll($"{MessagePrefix}Defuse started with {ChatColors.Darkred}{bombTimeUntilDetonation.ToString("n3")} seconds{ChatColors.White} left on the bomb. Not enough time left!");
+
             Server.NextFrame(() =>
             {
                 plantedBomb.C4Blow = 1.0f;
@@ -277,9 +257,9 @@ public class InstadefusePlugin : BasePlugin
         {
             plantedBomb.DefuseCountDown = 0;
 
+            Console.WriteLine($"{LogPrefix}Instant Defuse was successful! [{bombTimeUntilDetonation.ToString("n3")}s left]");
             Server.PrintToChatAll(
                 $"{MessagePrefix}Instant Defuse was successful! Defuse started with {ChatColors.Green}{bombTimeUntilDetonation.ToString("n3")} seconds{ChatColors.White} left on the bomb.");
-            Console.WriteLine($"{LogPrefix}Instant Defuse was successful! [{bombTimeUntilDetonation.ToString("n3")}s left]");
         });
     }
 
@@ -287,26 +267,26 @@ public class InstadefusePlugin : BasePlugin
     {
         var players = Utilities.GetPlayers();
 
-        if (!players.Any())
+        if (players.Any())
         {
-            Console.WriteLine($"{LogPrefix}No players found!");
-            throw new Exception("No players found!");
+            return players.Any(player => player.IsValid && player.TeamNum == (byte)team && player.PawnIsAlive);
         }
 
-        return players.Any(player => player.IsValid && player.TeamNum == (byte)team && player.PawnIsAlive);
+        Console.WriteLine($"{LogPrefix}No players found!");
+        throw new Exception("No players found!");
     }
 
     private static CPlantedC4? FindPlantedBomb()
     {
         var plantedBombList = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").ToList();
 
-        if (!plantedBombList.Any())
+        if (plantedBombList.Any())
         {
-            Console.WriteLine($"{LogPrefix}No planted bomb entities have been found!");
-            return null;
+            return plantedBombList.FirstOrDefault();
         }
-
-        return plantedBombList.FirstOrDefault();
+        
+        Console.WriteLine($"{LogPrefix}No planted bomb entities have been found!");
+        return null;
     }
 
     private void PrintThreatLevel()
