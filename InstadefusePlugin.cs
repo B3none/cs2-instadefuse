@@ -4,13 +4,14 @@ using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Utils;
 using System.Numerics;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
+using CounterStrikeSharp.API.Modules.Entities.Constants;
 
 namespace InstadefusePlugin;
 
 [MinimumApiVersion(129)]
 public class InstadefusePlugin : BasePlugin
 {
-    private const string Version = "1.3.0";
+    private const string Version = "1.3.1";
     
     public override string ModuleName => "Instadefuse Plugin";
     public override string ModuleVersion => Version;
@@ -258,11 +259,23 @@ public class InstadefusePlugin : BasePlugin
         Server.NextFrame(() =>
         {
             plantedBomb.DefuseCountDown = 0;
+            var gameRules = GetGameRules();
+            
+            if (gameRules != null)
+            {
+                gameRules.TerminateRound(2.0f, RoundEndReason.BombDefused);
+            }
 
             var outputText = $"{player.PlayerName} defused with {ChatColors.Green}{bombTimeUntilDetonation:n3} seconds{ChatColors.White} left on the bomb.";
             Console.WriteLine($"{LogPrefix}{outputText}");
             Server.PrintToChatAll($"{MessagePrefix}{outputText}");
         });
+    }
+    
+    public static CCSGameRules? GetGameRules()
+    {
+        var gameRulesEntities = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules");
+        return gameRulesEntities.First().GameRules;
     }
 
     private static bool TeamHasAlivePlayers(CsTeam team)
@@ -294,5 +307,27 @@ public class InstadefusePlugin : BasePlugin
     private void PrintThreatLevel()
     {
         Console.WriteLine($"{LogPrefix}Threat-Levels: HE [{_heThreat}], Molotov [{_molotovThreat}], Inferno [{_infernoThreat.Count}]");
+    }
+    
+    public static void SendBombExplodedEvent(CCSPlayerController player)
+    {
+        var plantedC4 = FindPlantedBomb();
+        if (player.PlayerPawn.Value == null || plantedC4 == null)
+        {
+            return;
+        }
+
+        Console.WriteLine($"{LogPrefix}Creating event");
+        var bombPlantedEvent = NativeAPI.CreateEvent("bomb_exploded", true);
+        Console.WriteLine($"{LogPrefix}Setting player controller handle");
+        NativeAPI.SetEventPlayerController(bombPlantedEvent, "userid", player.Handle);
+        
+        Console.WriteLine($"{LogPrefix}Setting site");
+        NativeAPI.SetEventInt(bombPlantedEvent, "site", plantedC4.BombSite);
+        
+        Console.WriteLine($"{LogPrefix}Setting priority");
+        NativeAPI.SetEventInt(bombPlantedEvent, "priority", 5);
+
+        NativeAPI.FireEvent(bombPlantedEvent, false);
     }
 }
