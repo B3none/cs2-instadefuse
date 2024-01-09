@@ -10,7 +10,7 @@ namespace InstadefusePlugin;
 [MinimumApiVersion(129)]
 public class InstadefusePlugin : BasePlugin
 {
-    private const string Version = "1.3.0";
+    private const string Version = "1.3.1";
     
     public override string ModuleName => "Instadefuse Plugin";
     public override string ModuleVersion => Version;
@@ -201,15 +201,6 @@ public class InstadefusePlugin : BasePlugin
             return;
         }
 
-        PrintThreatLevel();
-
-        if (_heThreat > 0 || _molotovThreat > 0 || _infernoThreat.Any())
-        {
-            Console.WriteLine($"{LogPrefix}Instant Defuse not possible because a grenade threat is active!");
-            Server.PrintToChatAll($"{MessagePrefix}Instant Defuse not possible because a grenade threat is active!");
-            return;
-        }
-
         var plantedBomb = FindPlantedBomb();
         if (plantedBomb == null)
         {
@@ -226,6 +217,15 @@ public class InstadefusePlugin : BasePlugin
         if (TeamHasAlivePlayers(CsTeam.Terrorist))
         {
             Console.WriteLine($"{LogPrefix}Terrorists are still alive");
+            return;
+        }
+        
+        PrintThreatLevel();
+
+        if (_heThreat > 0 || _molotovThreat > 0 || _infernoThreat.Any())
+        {
+            Console.WriteLine($"{LogPrefix}Instant Defuse not possible because a grenade threat is active!");
+            Server.PrintToChatAll($"{MessagePrefix}Instant Defuse not possible because a grenade threat is active!");
             return;
         }
 

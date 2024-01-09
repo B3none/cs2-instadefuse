@@ -6,12 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-      <Reference Include="CounterStrikeSharp.API">
-         <HintPath>.\CounterStrikeSharp\addons\counterstrikesharp\api\CounterStrikeSharp.API.dll</HintPath>
-      </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.142" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition=" '$(CopyPath)' != '' ">
+    <Exec Command="copy &quot;$(TargetPath)&quot; &quot;$(CopyPath)&quot; " />
+  </Target>
 </Project>
