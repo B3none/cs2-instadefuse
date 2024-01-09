@@ -244,13 +244,22 @@ public class InstadefusePlugin : BasePlugin
 
         if (!bombCanBeDefusedInTime)
         {
-            var outputText = $"{MessagePrefix}{player.PlayerName} was {ChatColors.Darkred}{Math.Abs(timeLeftAfterDefuse):n3} seconds{ChatColors.White} away from defusing.";
+            var outputText = $"{player.PlayerName} was {ChatColors.Darkred}{Math.Abs(timeLeftAfterDefuse):n3} seconds{ChatColors.White} away from defusing.";
             Console.WriteLine($"{LogPrefix}{outputText}");
             Server.PrintToChatAll($"{MessagePrefix}{outputText}");
 
             Server.NextFrame(() =>
             {
                 plantedBomb.C4Blow = 1.0f;
+                
+                var gameRules = GetGameRules();
+            
+                if (gameRules != null)
+                {
+                    SendBombExplodedEvent();
+                    gameRules.BombDefused = true;
+                    gameRules.TerminateRound(2.0f, RoundEndReason.TargetBombed);
+                }
             });
 
             return;
@@ -259,16 +268,19 @@ public class InstadefusePlugin : BasePlugin
         Server.NextFrame(() =>
         {
             plantedBomb.DefuseCountDown = 0;
-            var gameRules = GetGameRules();
-            
-            if (gameRules != null)
-            {
-                gameRules.TerminateRound(2.0f, RoundEndReason.BombDefused);
-            }
 
             var outputText = $"{player.PlayerName} defused with {ChatColors.Green}{bombTimeUntilDetonation:n3} seconds{ChatColors.White} left on the bomb.";
             Console.WriteLine($"{LogPrefix}{outputText}");
             Server.PrintToChatAll($"{MessagePrefix}{outputText}");
+            
+            var gameRules = GetGameRules();
+            
+            if (gameRules != null)
+            {
+                SendBombDefusedEvent(player);
+                gameRules.BombDefused = true;
+                gameRules.TerminateRound(2.0f, RoundEndReason.BombDefused);
+            }
         });
     }
     
@@ -309,7 +321,7 @@ public class InstadefusePlugin : BasePlugin
         Console.WriteLine($"{LogPrefix}Threat-Levels: HE [{_heThreat}], Molotov [{_molotovThreat}], Inferno [{_infernoThreat.Count}]");
     }
     
-    public static void SendBombExplodedEvent(CCSPlayerController player)
+    public static void SendBombDefusedEvent(CCSPlayerController player)
     {
         var plantedC4 = FindPlantedBomb();
         if (player.PlayerPawn.Value == null || plantedC4 == null)
@@ -318,9 +330,32 @@ public class InstadefusePlugin : BasePlugin
         }
 
         Console.WriteLine($"{LogPrefix}Creating event");
-        var bombPlantedEvent = NativeAPI.CreateEvent("bomb_exploded", true);
+        var bombPlantedEvent = NativeAPI.CreateEvent("bomb_defused", true);
         Console.WriteLine($"{LogPrefix}Setting player controller handle");
         NativeAPI.SetEventPlayerController(bombPlantedEvent, "userid", player.Handle);
+        
+        Console.WriteLine($"{LogPrefix}Setting site");
+        NativeAPI.SetEventInt(bombPlantedEvent, "site", plantedC4.BombSite);
+        
+        Console.WriteLine($"{LogPrefix}Setting priority");
+        NativeAPI.SetEventInt(bombPlantedEvent, "priority", 5);
+
+        NativeAPI.FireEvent(bombPlantedEvent, false);
+    }
+    
+    public static void SendBombExplodedEvent()
+    {
+        var plantedC4 = FindPlantedBomb();
+        if (plantedC4 == null)
+        {
+            return;
+        }
+
+        Console.WriteLine($"{LogPrefix}Creating event");
+        var bombPlantedEvent = NativeAPI.CreateEvent("bomb_exploded", true);
+        
+        Console.WriteLine($"{LogPrefix}Setting userid to -1");
+        NativeAPI.SetEventInt(bombPlantedEvent, "userid", -1);
         
         Console.WriteLine($"{LogPrefix}Setting site");
         NativeAPI.SetEventInt(bombPlantedEvent, "site", plantedC4.BombSite);
