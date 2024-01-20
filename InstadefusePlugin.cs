@@ -243,7 +243,7 @@ public class InstadefusePlugin : BasePlugin
 
         if (!bombCanBeDefusedInTime)
         {
-            var outputText = $"{MessagePrefix}{player.PlayerName} was {ChatColors.Darkred}{Math.Abs(timeLeftAfterDefuse):n3} seconds{ChatColors.White} away from defusing.";
+            var outputText = $"{player.PlayerName} was {ChatColors.Darkred}{Math.Abs(timeLeftAfterDefuse):n3} seconds{ChatColors.White} away from defusing.";
             Console.WriteLine($"{LogPrefix}{outputText}");
             Server.PrintToChatAll($"{MessagePrefix}{outputText}");
 
