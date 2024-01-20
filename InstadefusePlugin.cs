@@ -7,7 +7,7 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 
 namespace InstadefusePlugin;
 
-[MinimumApiVersion(129)]
+[MinimumApiVersion(147)]
 public class InstadefusePlugin : BasePlugin
 {
     private const string Version = "1.3.2";
@@ -243,7 +243,7 @@ public class InstadefusePlugin : BasePlugin
 
         if (!bombCanBeDefusedInTime)
         {
-            var outputText = $"{player.PlayerName} was {ChatColors.Darkred}{Math.Abs(timeLeftAfterDefuse):n3} seconds{ChatColors.White} away from defusing.";
+            var outputText = $"{player.PlayerName} was {ChatColors.DarkRed}{Math.Abs(timeLeftAfterDefuse):n3} seconds{ChatColors.White} away from defusing.";
             Console.WriteLine($"{LogPrefix}{outputText}");
             Server.PrintToChatAll($"{MessagePrefix}{outputText}");
 
@@ -271,7 +271,7 @@ public class InstadefusePlugin : BasePlugin
 
         if (players.Any())
         {
-            return players.Any(player => player.IsValid && player.TeamNum == (byte)team && player.PawnIsAlive);
+            return players.Any(player => player.IsValid && player.Team == team && player.PawnIsAlive);
         }
 
         Console.WriteLine($"{LogPrefix}No players found!");
