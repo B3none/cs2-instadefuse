@@ -10,7 +10,7 @@ namespace InstadefusePlugin;
 [MinimumApiVersion(129)]
 public class InstadefusePlugin : BasePlugin
 {
-    private const string Version = "1.3.1";
+    private const string Version = "1.3.2";
     
     public override string ModuleName => "Instadefuse Plugin";
     public override string ModuleVersion => Version;
