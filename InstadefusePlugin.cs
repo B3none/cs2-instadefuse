@@ -37,6 +37,8 @@ public class InstadefusePlugin : BasePlugin
     
     public override void Load(bool hotReload)
     {
+        _translator = new Translator(Localizer);
+        
         Console.WriteLine($"{LogPrefix}Plugin loaded!");
         
         MessagePrefix = _translator["retakes.prefix"];
