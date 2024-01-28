@@ -4,21 +4,22 @@ using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Utils;
 using System.Numerics;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
+using InstadefusePlugin.Modules;
 
 namespace InstadefusePlugin;
 
 [MinimumApiVersion(147)]
 public class InstadefusePlugin : BasePlugin
 {
-    private const string Version = "1.3.3";
+    private const string Version = "1.4.0";
     
     public override string ModuleName => "Instadefuse Plugin";
     public override string ModuleVersion => Version;
     public override string ModuleAuthor => "B3none";
     public override string ModuleDescription => "Allows a CT to instantly defuse the bomb when nothing can prevent defusal.";
 
-    private static readonly string LogPrefix = $"[Instadefuse {Version}] ";
-    private static readonly string MessagePrefix = $"[{ChatColors.Green}Retakes{ChatColors.White}] ";
+    public static readonly string LogPrefix = $"[Instadefuse {Version}] ";
+    public static string MessagePrefix = $"[{ChatColors.Green}Retakes{ChatColors.White}] ";
 
     private float _bombPlantedTime = float.NaN;
     private bool _bombTicking;
@@ -27,9 +28,18 @@ public class InstadefusePlugin : BasePlugin
 
     private List<int> _infernoThreat = new();
 
+    private Translator _translator;
+    
+    public InstadefusePlugin()
+    {
+        _translator = new Translator(Localizer);
+    }
+    
     public override void Load(bool hotReload)
     {
         Console.WriteLine($"{LogPrefix}Plugin loaded!");
+        
+        MessagePrefix = _translator["retakes.prefix"];
     }
 
     [GameEventHandler]
@@ -225,7 +235,7 @@ public class InstadefusePlugin : BasePlugin
         if (_heThreat > 0 || _molotovThreat > 0 || _infernoThreat.Any())
         {
             Console.WriteLine($"{LogPrefix}Instant Defuse not possible because a grenade threat is active!");
-            Server.PrintToChatAll($"{MessagePrefix}Instant Defuse not possible because a grenade threat is active!");
+            Server.PrintToChatAll(_translator["instadefuse.prefix"] + _translator["instadefuse.not_possible"]);
             return;
         }
 
@@ -233,6 +243,7 @@ public class InstadefusePlugin : BasePlugin
 
         if (defuser == null)
         {
+            Console.WriteLine($"{LogPrefix}No defusing player found.");
             return;
         }
 
@@ -250,9 +261,7 @@ public class InstadefusePlugin : BasePlugin
 
         if (!bombCanBeDefusedInTime)
         {
-            var outputText = $"{defuser.PlayerName} was {ChatColors.DarkRed}{Math.Abs(timeLeftAfterDefuse):n3} seconds{ChatColors.White} away from defusing.";
-            Console.WriteLine($"{LogPrefix}{outputText}");
-            Server.PrintToChatAll($"{MessagePrefix}{outputText}");
+            Server.PrintToChatAll(_translator["instadefuse.prefix"] + _translator["instadefuse.unsuccessful", defuser.PlayerName, $"{Math.Abs(timeLeftAfterDefuse):n3}"]);
 
             Server.NextFrame(() =>
             {
@@ -266,9 +275,7 @@ public class InstadefusePlugin : BasePlugin
         {
             plantedBomb.DefuseCountDown = 0;
 
-            var outputText = $"{defuser.PlayerName} defused with {ChatColors.Green}{bombTimeUntilDetonation:n3} seconds{ChatColors.White} left on the bomb.";
-            Console.WriteLine($"{LogPrefix}{outputText}");
-            Server.PrintToChatAll($"{MessagePrefix}{outputText}");
+            Server.PrintToChatAll(_translator["instadefuse.prefix"] + _translator["instadefuse.successful", defuser.PlayerName, $"{Math.Abs(bombTimeUntilDetonation):n3}"]);
         });
     }
 
