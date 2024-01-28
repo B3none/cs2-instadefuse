@@ -237,7 +237,7 @@ public class InstadefusePlugin : BasePlugin
         if (_heThreat > 0 || _molotovThreat > 0 || _infernoThreat.Any())
         {
             Console.WriteLine($"{LogPrefix}Instant Defuse not possible because a grenade threat is active!");
-            Server.PrintToChatAll(_translator["instadefuse.prefix"] + _translator["instadefuse.not_possible"]);
+            Server.PrintToChatAll(MessagePrefix + _translator["instadefuse.not_possible"]);
             return;
         }
 
@@ -263,7 +263,7 @@ public class InstadefusePlugin : BasePlugin
 
         if (!bombCanBeDefusedInTime)
         {
-            Server.PrintToChatAll(_translator["instadefuse.prefix"] + _translator["instadefuse.unsuccessful", defuser.PlayerName, $"{Math.Abs(timeLeftAfterDefuse):n3}"]);
+            Server.PrintToChatAll(MessagePrefix + _translator["instadefuse.unsuccessful", defuser.PlayerName, $"{Math.Abs(timeLeftAfterDefuse):n3}"]);
 
             Server.NextFrame(() =>
             {
@@ -277,7 +277,7 @@ public class InstadefusePlugin : BasePlugin
         {
             plantedBomb.DefuseCountDown = 0;
 
-            Server.PrintToChatAll(_translator["instadefuse.prefix"] + _translator["instadefuse.successful", defuser.PlayerName, $"{Math.Abs(bombTimeUntilDetonation):n3}"]);
+            Server.PrintToChatAll(MessagePrefix + _translator["instadefuse.successful", defuser.PlayerName, $"{Math.Abs(bombTimeUntilDetonation):n3}"]);
         });
     }
 
