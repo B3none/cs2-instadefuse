@@ -11,7 +11,7 @@ namespace InstadefusePlugin;
 [MinimumApiVersion(147)]
 public class InstadefusePlugin : BasePlugin
 {
-    private const string Version = "1.4.1";
+    private const string Version = "1.4.2";
     
     public override string ModuleName => "Instadefuse Plugin";
     public override string ModuleVersion => Version;
@@ -47,7 +47,9 @@ public class InstadefusePlugin : BasePlugin
     [GameEventHandler]
     public HookResult OnPlayerDeath(EventPlayerDeath @event, GameEventInfo info)
     {
-        AttemptInstadefuse();
+        // TODO: Re-implement once GetDefuser works as expected.
+        // AttemptInstadefuse();
+        
         return HookResult.Continue;
     }
 
@@ -120,7 +122,8 @@ public class InstadefusePlugin : BasePlugin
         
         _infernoThreat.Remove(@event.Entityid);
 
-        AttemptInstadefuse();
+        // TODO: Re-implement once GetDefuser works as expected.
+        // AttemptInstadefuse();
 
         return HookResult.Continue;
     }
@@ -132,7 +135,8 @@ public class InstadefusePlugin : BasePlugin
         
         _infernoThreat.Remove(@event.Entityid);
 
-        AttemptInstadefuse();
+        // TODO: Re-implement once GetDefuser works as expected.
+        // AttemptInstadefuse();
 
         return HookResult.Continue;
     }
@@ -147,7 +151,8 @@ public class InstadefusePlugin : BasePlugin
             _heThreat--;
         }
 
-        AttemptInstadefuse();
+        // TODO: Re-implement once GetDefuser works as expected.
+        // AttemptInstadefuse();
 
         return HookResult.Continue;
     }
@@ -161,8 +166,9 @@ public class InstadefusePlugin : BasePlugin
         {
             _molotovThreat--;
         }
-        
-        AttemptInstadefuse();
+
+        // TODO: Re-implement once GetDefuser works as expected.
+        // AttemptInstadefuse();
 
         return HookResult.Continue;
     }
@@ -197,13 +203,18 @@ public class InstadefusePlugin : BasePlugin
     public HookResult OnBombBeginDefuse(EventBombBegindefuse @event, GameEventInfo info)
     {
         Console.WriteLine($"{LogPrefix}OnBombBeginDefuse");
-        
-        AttemptInstadefuse();
+
+        var player = @event.Userid;
+
+        if (player != null && player.IsValid && player.PawnIsAlive)
+        {
+            AttemptInstadefuse(player);
+        }
 
         return HookResult.Continue;
     }
 
-    private void AttemptInstadefuse()
+    private void AttemptInstadefuse(CCSPlayerController defuser)
     {
         Console.WriteLine($"{LogPrefix}Attempting instadefuse...");
 
@@ -226,6 +237,15 @@ public class InstadefusePlugin : BasePlugin
             return;
         }
 
+        // TODO: Implement this once the PlayerPawn values are actually changing.
+        // var defuser = GetDefuser();
+        //
+        // if (defuser == null)
+        // {
+        //     Console.WriteLine($"{LogPrefix}No defusing player found.");
+        //     return;
+        // }
+
         if (TeamHasAlivePlayers(CsTeam.Terrorist))
         {
             Console.WriteLine($"{LogPrefix}Terrorists are still alive");
@@ -238,14 +258,6 @@ public class InstadefusePlugin : BasePlugin
         {
             Console.WriteLine($"{LogPrefix}Instant Defuse not possible because a grenade threat is active!");
             Server.PrintToChatAll(MessagePrefix + _translator["instadefuse.not_possible"]);
-            return;
-        }
-
-        var defuser = GetDefuser();
-
-        if (defuser == null)
-        {
-            Console.WriteLine($"{LogPrefix}No defusing player found.");
             return;
         }
 
@@ -306,13 +318,16 @@ public class InstadefusePlugin : BasePlugin
     {
         var players = Utilities.GetPlayers();
 
-        if (players.Any())
+        foreach (var player in players)
         {
-            return players.Any(player => player.IsValid && player.Team == team && player.PawnIsAlive);
+            if (!player.IsValid) continue;
+            if (player.Team != team) continue;
+            if (!player.PawnIsAlive) continue;
+            
+            return true;
         }
 
-        Console.WriteLine($"{LogPrefix}No players found!");
-        throw new Exception("No players found!");
+        return false;
     }
 
     private static CPlantedC4? FindPlantedBomb()
