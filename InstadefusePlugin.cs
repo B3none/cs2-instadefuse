@@ -41,7 +41,7 @@ public class InstadefusePlugin : BasePlugin
         
         Console.WriteLine($"{LogPrefix}Plugin loaded!");
         
-        MessagePrefix = _translator["retakes.prefix"];
+        MessagePrefix = _translator["instadefuse.prefix"];
     }
 
     [GameEventHandler]
