@@ -33,6 +33,13 @@ public class InstadefusePlugin : BasePlugin
     }
 
     [GameEventHandler]
+    public HookResult OnPlayerDeath(EventPlayerDeath @event, GameEventInfo info)
+    {
+        AttemptInstadefuse();
+        return HookResult.Continue;
+    }
+
+    [GameEventHandler]
     public HookResult OnGrenadeThrown(EventGrenadeThrown @event, GameEventInfo info)
     {
         Console.WriteLine($"{LogPrefix}OnGrenadeThrown: {@event.Weapon} - isBot: {@event.Userid?.IsBot}");
@@ -43,7 +50,7 @@ public class InstadefusePlugin : BasePlugin
         {
             _heThreat++;
         }
-        else if (weapon == "incgrenade" || @event.Weapon == "molotov")
+        else if (weapon == "incgrenade" || weapon == "molotov")
         {
             _molotovThreat++;
         }
@@ -101,7 +108,7 @@ public class InstadefusePlugin : BasePlugin
         
         _infernoThreat.Remove(@event.Entityid);
 
-        PrintThreatLevel();
+        AttemptInstadefuse();
 
         return HookResult.Continue;
     }
@@ -113,7 +120,7 @@ public class InstadefusePlugin : BasePlugin
         
         _infernoThreat.Remove(@event.Entityid);
 
-        PrintThreatLevel();
+        AttemptInstadefuse();
 
         return HookResult.Continue;
     }
@@ -128,7 +135,7 @@ public class InstadefusePlugin : BasePlugin
             _heThreat--;
         }
 
-        PrintThreatLevel();
+        AttemptInstadefuse();
 
         return HookResult.Continue;
     }
@@ -142,8 +149,8 @@ public class InstadefusePlugin : BasePlugin
         {
             _molotovThreat--;
         }
-
-        PrintThreatLevel();
+        
+        AttemptInstadefuse();
 
         return HookResult.Continue;
     }
@@ -179,19 +186,12 @@ public class InstadefusePlugin : BasePlugin
     {
         Console.WriteLine($"{LogPrefix}OnBombBeginDefuse");
         
-        var player = @event.Userid;
-
-        if (player == null || !player.IsValid)
-        {
-            return HookResult.Continue;
-        }
-        
-        AttemptInstadefuse(player);
+        AttemptInstadefuse();
 
         return HookResult.Continue;
     }
 
-    private void AttemptInstadefuse(CCSPlayerController player)
+    private void AttemptInstadefuse()
     {
         Console.WriteLine($"{LogPrefix}Attempting instadefuse...");
 
@@ -229,12 +229,19 @@ public class InstadefusePlugin : BasePlugin
             return;
         }
 
+        var defuser = GetDefuser();
+
+        if (defuser == null)
+        {
+            return;
+        }
+
         var bombTimeUntilDetonation = plantedBomb.TimerLength - (Server.CurrentTime - _bombPlantedTime);
 
         var defuseLength = plantedBomb.DefuseLength;
         if (defuseLength != 5 && defuseLength != 10)
         {
-            defuseLength = player.PawnHasDefuser ? 5.0f : 10.0f;
+            defuseLength = defuser.PawnHasDefuser ? 5.0f : 10.0f;
         }
         Console.WriteLine($"{LogPrefix}DefuseLength: {defuseLength}");
 
@@ -243,7 +250,7 @@ public class InstadefusePlugin : BasePlugin
 
         if (!bombCanBeDefusedInTime)
         {
-            var outputText = $"{player.PlayerName} was {ChatColors.DarkRed}{Math.Abs(timeLeftAfterDefuse):n3} seconds{ChatColors.White} away from defusing.";
+            var outputText = $"{defuser.PlayerName} was {ChatColors.DarkRed}{Math.Abs(timeLeftAfterDefuse):n3} seconds{ChatColors.White} away from defusing.";
             Console.WriteLine($"{LogPrefix}{outputText}");
             Server.PrintToChatAll($"{MessagePrefix}{outputText}");
 
@@ -259,10 +266,31 @@ public class InstadefusePlugin : BasePlugin
         {
             plantedBomb.DefuseCountDown = 0;
 
-            var outputText = $"{player.PlayerName} defused with {ChatColors.Green}{bombTimeUntilDetonation:n3} seconds{ChatColors.White} left on the bomb.";
+            var outputText = $"{defuser.PlayerName} defused with {ChatColors.Green}{bombTimeUntilDetonation:n3} seconds{ChatColors.White} left on the bomb.";
             Console.WriteLine($"{LogPrefix}{outputText}");
             Server.PrintToChatAll($"{MessagePrefix}{outputText}");
         });
+    }
+
+    private static CCSPlayerController? GetDefuser()
+    {
+        var players = Utilities.GetPlayers();
+
+        foreach (var player in players)
+        {
+            if (!player.IsValid) continue;
+            if (!player.PawnIsAlive) continue;
+            if (player.Team != CsTeam.CounterTerrorist) continue;
+
+            var playerPawn = player.PlayerPawn.Value;
+            if (playerPawn == null) continue;
+            if (!playerPawn.IsValid) continue;
+            if (!playerPawn.IsDefusing) continue;
+            
+            return player;
+        }
+        
+        return null;
     }
 
     private static bool TeamHasAlivePlayers(CsTeam team)
