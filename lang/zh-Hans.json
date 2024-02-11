@@ -1,7 +1,7 @@
 {
   "instadefuse.prefix": "[[GREEN]Retakes[NORMAL]] ",
   
-  "instadefuse.unsuccessful": "{0}距离拆包失败还有[DARK_RED]{1}秒[WHITE]。",
+  "instadefuse.unsuccessful": "{0}距离拆包失败，炸弹仅剩下[DARK_RED]{1}秒[WHITE]。",
   "instadefuse.successful": "{0}成功拆包，炸弹还剩下[GREEN]{1}秒[WHITE]。",
   "instadefuse.not_possible": "无法立即拆包，存在投掷物威胁！"
 }
