@@ -11,7 +11,7 @@ namespace InstadefusePlugin;
 [MinimumApiVersion(147)]
 public class InstadefusePlugin : BasePlugin
 {
-    private const string Version = "1.4.2";
+    private const string Version = "1.4.3";
     
     public override string ModuleName => "Instadefuse Plugin";
     public override string ModuleVersion => Version;
@@ -279,6 +279,9 @@ public class InstadefusePlugin : BasePlugin
 
             Server.NextFrame(() =>
             {
+                // We get the planted bomb again as it was sometimes crashing.
+                var plantedBomb = FindPlantedBomb();
+                
                 plantedBomb.C4Blow = 1.0f;
             });
 
@@ -287,6 +290,9 @@ public class InstadefusePlugin : BasePlugin
 
         Server.NextFrame(() =>
         {
+            // We get the planted bomb again as it was sometimes crashing.
+            var plantedBomb = FindPlantedBomb();
+            
             plantedBomb.DefuseCountDown = 0;
 
             Server.PrintToChatAll(MessagePrefix + _translator["instadefuse.successful", defuser.PlayerName, $"{Math.Abs(bombTimeUntilDetonation):n3}"]);
