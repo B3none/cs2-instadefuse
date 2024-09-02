@@ -16,7 +16,7 @@ public class InstadefusePlugin : BasePlugin
     public override string ModuleName => "Instadefuse Plugin";
     public override string ModuleVersion => Version;
     public override string ModuleAuthor => "B3none";
-    public override string ModuleDescription => "Allows a CT to instantly defuse the bomb when nothing can prevent defusal.";
+    public override string ModuleDescription => "https://github.com/B3none/cs2-instadefuse";
 
     public static readonly string LogPrefix = $"[Instadefuse {Version}] ";
     public static string MessagePrefix = $"[{ChatColors.Green}Retakes{ChatColors.White}] ";
