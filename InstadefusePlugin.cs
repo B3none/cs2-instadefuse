@@ -8,10 +8,10 @@ using InstadefusePlugin.Modules;
 
 namespace InstadefusePlugin;
 
-[MinimumApiVersion(147)]
+[MinimumApiVersion(225)]
 public class InstadefusePlugin : BasePlugin
 {
-    private const string Version = "1.4.3";
+    private const string Version = "2.0.0";
     
     public override string ModuleName => "Instadefuse Plugin";
     public override string ModuleVersion => Version;
