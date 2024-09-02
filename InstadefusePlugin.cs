@@ -8,7 +8,7 @@ using InstadefusePlugin.Modules;
 
 namespace InstadefusePlugin;
 
-[MinimumApiVersion(225)]
+[MinimumApiVersion(220)]
 public class InstadefusePlugin : BasePlugin
 {
     private const string Version = "2.0.0";
