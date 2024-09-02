@@ -45,15 +45,6 @@ public class InstadefusePlugin : BasePlugin
     }
 
     [GameEventHandler]
-    public HookResult OnPlayerDeath(EventPlayerDeath @event, GameEventInfo info)
-    {
-        // TODO: Re-implement once GetDefuser works as expected.
-        // AttemptInstadefuse();
-        
-        return HookResult.Continue;
-    }
-
-    [GameEventHandler]
     public HookResult OnGrenadeThrown(EventGrenadeThrown @event, GameEventInfo info)
     {
         Console.WriteLine($"{LogPrefix}OnGrenadeThrown: {@event.Weapon} - isBot: {@event.Userid?.IsBot}");
@@ -122,9 +113,6 @@ public class InstadefusePlugin : BasePlugin
         
         _infernoThreat.Remove(@event.Entityid);
 
-        // TODO: Re-implement once GetDefuser works as expected.
-        // AttemptInstadefuse();
-
         return HookResult.Continue;
     }
 
@@ -134,9 +122,6 @@ public class InstadefusePlugin : BasePlugin
         Console.WriteLine($"{LogPrefix}OnInfernoExpire");
         
         _infernoThreat.Remove(@event.Entityid);
-
-        // TODO: Re-implement once GetDefuser works as expected.
-        // AttemptInstadefuse();
 
         return HookResult.Continue;
     }
@@ -151,9 +136,6 @@ public class InstadefusePlugin : BasePlugin
             _heThreat--;
         }
 
-        // TODO: Re-implement once GetDefuser works as expected.
-        // AttemptInstadefuse();
-
         return HookResult.Continue;
     }
 
@@ -166,9 +148,6 @@ public class InstadefusePlugin : BasePlugin
         {
             _molotovThreat--;
         }
-
-        // TODO: Re-implement once GetDefuser works as expected.
-        // AttemptInstadefuse();
 
         return HookResult.Continue;
     }
@@ -237,15 +216,6 @@ public class InstadefusePlugin : BasePlugin
             return;
         }
 
-        // TODO: Implement this once the PlayerPawn values are actually changing.
-        // var defuser = GetDefuser();
-        //
-        // if (defuser == null)
-        // {
-        //     Console.WriteLine($"{LogPrefix}No defusing player found.");
-        //     return;
-        // }
-
         if (TeamHasAlivePlayers(CsTeam.Terrorist))
         {
             Console.WriteLine($"{LogPrefix}Terrorists are still alive");
@@ -279,8 +249,13 @@ public class InstadefusePlugin : BasePlugin
 
             Server.NextFrame(() =>
             {
-                // We get the planted bomb again as it was sometimes crashing.
-                var plantedBomb = FindPlantedBomb();
+                plantedBomb = FindPlantedBomb();
+                
+                if (plantedBomb == null)
+                {
+                    Console.WriteLine($"{LogPrefix}Planted bomb is null!");
+                    return;
+                }
                 
                 plantedBomb.C4Blow = 1.0f;
             });
@@ -291,33 +266,18 @@ public class InstadefusePlugin : BasePlugin
         Server.NextFrame(() =>
         {
             // We get the planted bomb again as it was sometimes crashing.
-            var plantedBomb = FindPlantedBomb();
+            plantedBomb = FindPlantedBomb();
+            
+            if (plantedBomb == null)
+            {
+                Console.WriteLine($"{LogPrefix}Planted bomb is null!");
+                return;
+            }
             
             plantedBomb.DefuseCountDown = 0;
 
             Server.PrintToChatAll(MessagePrefix + _translator["instadefuse.successful", defuser.PlayerName, $"{Math.Abs(bombTimeUntilDetonation):n3}"]);
         });
-    }
-
-    private static CCSPlayerController? GetDefuser()
-    {
-        var players = Utilities.GetPlayers();
-
-        foreach (var player in players)
-        {
-            if (!player.IsValid) continue;
-            if (!player.PawnIsAlive) continue;
-            if (player.Team != CsTeam.CounterTerrorist) continue;
-
-            var playerPawn = player.PlayerPawn.Value;
-            if (playerPawn == null) continue;
-            if (!playerPawn.IsValid) continue;
-            if (!playerPawn.IsDefusing) continue;
-            
-            return player;
-        }
-        
-        return null;
     }
 
     private static bool TeamHasAlivePlayers(CsTeam team)
